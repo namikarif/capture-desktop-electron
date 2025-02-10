@@ -1,5 +1,5 @@
-const apiUrl = "https://nestjs-socket.onrender.com";
-// const apiUrl = "http://localhost:3001";
+// const apiUrl = "https://nestjs-socket.onrender.com";
+const apiUrl = "http://localhost:3001";
 
 const socket = io(apiUrl);
 
@@ -77,7 +77,9 @@ const stopCapture = () => {
         peerConnection = null;
     }
 
-    socket.emit("change-state", { ...deviceState, isEnable: true });
+    recorder?.stop();
+
+    socket.emit("change-state", {...deviceState, isEnable: true});
 
     socket.off("ice-candidate");
     socket.off("answer");
@@ -92,7 +94,7 @@ const startCapture = async () => {
 
     peerConnection = new RTCPeerConnection();
 
-    const sources = await window.electron.getDesktopSources({ types: ["screen", "window"] });
+    const sources = await window.electron.getDesktopSources({types: ["screen", "window"]});
 
     const screenConstraints = {
         video: {
@@ -104,15 +106,22 @@ const startCapture = async () => {
     };
 
     screenStream = await navigator.mediaDevices.getUserMedia(screenConstraints);
-    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    cameraStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
 
-    // recorder = new MediaRecorder(cameraStream, {mimeType: "video/webm"});
-    //
-    // recorder.ondataavailable = (event) => {
-    //     socket.emit("stream-data", event.data);
-    // };
-    //
-    // recorder.start(100);
+    recorder = new MediaRecorder(cameraStream, {mimeType: 'video/webm'});
+
+    recorder.ondataavailable = (event) => {
+        socket.emit("stream-blob-data", {
+            blob: event.data,
+            id: `${deviceState.id}-cameraStream-${new Date().getTime()}`
+        });
+    };
+
+    recorder.onstop = () => {
+        console.log("Video recording stopped");
+    };
+
+    recorder.start(100);
 
     peerConnection.getSenders().forEach(sender => peerConnection.removeTrack(sender));
 
@@ -143,7 +152,7 @@ const startCapture = async () => {
         }
         await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
 
-        socket.emit("change-state", { ...deviceState, isEnable: false });
+        socket.emit("change-state", {...deviceState, isEnable: false});
     });
 
     console.log("🎥 Capture started!");

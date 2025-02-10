@@ -1,0 +1,25 @@
+{
+  "name": "capture-desktop-electron",
+  "version": "1.0.0",
+  "description": "Desktop Capture App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/namikarif/capture-desktop-electron",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "NamikArif",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^34.0.2"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+}
